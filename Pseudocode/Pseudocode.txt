@@ -1,0 +1,47 @@
+Pseudocode
+Algorithm - HML-LAS Scheduler
+
+Initialize:
+last_burst = 5, waiting_time = 0, predicted_burst = 5, alpha = 5,
+io_count = 0, cpu_count = 0, proc_class = 0 for all processes
+
+scheduler():
+loop forever:
+    load = count of RUNNABLE processes
+
+    for each RUNNABLE process p:
+        p.waiting_time++
+
+    selected = NULL
+    min_predicted = 99999
+
+    for each RUNNABLE process p:
+        alpha = (load > 10) ? 3 : (load > 5) ? 5 : 7
+
+        predicted = (alpha * p.last_burst + (10 - alpha) * p.predicted_burst) / 10
+        p.predicted_burst = predicted
+
+        if p.predicted_burst <= 3:
+            p.io_count++
+        else:
+            p.cpu_count++
+
+        if p.io_count > p.cpu_count + 2:
+            predicted -= 2
+        elif p.cpu_count > p.io_count + 2:
+            predicted += 1
+
+        if predicted < 1:
+            predicted = 1
+
+        if p.waiting_time > 20:
+            predicted /= 2   // aging
+
+        if predicted < min_predicted:
+            min_predicted = predicted
+            selected = p
+
+    if selected != NULL:
+        run selected
+        selected.waiting_time = 0
+        selected.last_burst = 1
